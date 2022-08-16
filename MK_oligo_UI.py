@@ -50,7 +50,7 @@ class seqAnalysis():
 class Window(QtWidgets.QMainWindow):
     def __init__(self):
         QtWidgets.QWidget.__init__(self)
-        uic.loadUi("MainWindow1.ui", self)
+        uic.loadUi("MainWindow.ui", self)
         self.pushButton_6.clicked.connect(self.loadFile)
         self.pushButton.clicked.connect(self.codonOptimize)
         self.analiseseq_pushButton.clicked.connect(self.analiseSeq)
