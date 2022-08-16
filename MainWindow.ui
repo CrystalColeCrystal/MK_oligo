@@ -34,11 +34,11 @@
    </font>
   </property>
   <property name="windowTitle">
-   <string>CSPSynth</string>
+   <string>GeneSynth</string>
   </property>
   <property name="windowIcon">
    <iconset>
-    <normaloff>../Desktop/ico.ico</normaloff>../Desktop/ico.ico</iconset>
+    <normaloff>ico.png</normaloff>ico.png</iconset>
   </property>
   <property name="documentMode">
    <bool>false</bool>
@@ -90,7 +90,7 @@
                  <item>
                   <widget class="QPushButton" name="pushButton_6">
                    <property name="text">
-                    <string>Load File</string>
+                    <string>Load Sequence File</string>
                    </property>
                   </widget>
                  </item>
@@ -130,9 +130,72 @@
              <item>
               <layout class="QVBoxLayout" name="verticalLayout_4">
                <item>
+                <widget class="QLabel" name="label_8">
+                 <property name="font">
+                  <font>
+                   <pointsize>10</pointsize>
+                   <bold>true</bold>
+                  </font>
+                 </property>
+                 <property name="text">
+                  <string>Codone optimisation</string>
+                 </property>
+                </widget>
+               </item>
+               <item>
+                <layout class="QHBoxLayout" name="horizontalLayout_6">
+                 <item>
+                  <widget class="QLabel" name="label_9">
+                   <property name="maximumSize">
+                    <size>
+                     <width>67</width>
+                     <height>16777215</height>
+                    </size>
+                   </property>
+                   <property name="text">
+                    <string>Species:</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QComboBox" name="comboBox">
+                   <item>
+                    <property name="text">
+                     <string>E.coli</string>
+                    </property>
+                   </item>
+                   <item>
+                    <property name="text">
+                     <string>Mouse</string>
+                    </property>
+                   </item>
+                   <item>
+                    <property name="text">
+                     <string>Drosofila</string>
+                    </property>
+                   </item>
+                  </widget>
+                 </item>
+                </layout>
+               </item>
+               <item>
                 <widget class="QPushButton" name="pushButton">
                  <property name="text">
-                  <string>Analise sequence</string>
+                  <string>Optimize codons</string>
+                 </property>
+                </widget>
+               </item>
+               <item>
+                <widget class="Line" name="line_2">
+                 <property name="orientation">
+                  <enum>Qt::Horizontal</enum>
+                 </property>
+                </widget>
+               </item>
+               <item>
+                <widget class="QPushButton" name="analiseseq_pushButton">
+                 <property name="text">
+                  <string>Analise Sequence</string>
                  </property>
                 </widget>
                </item>
@@ -140,6 +203,19 @@
                 <widget class="Line" name="line">
                  <property name="orientation">
                   <enum>Qt::Horizontal</enum>
+                 </property>
+                </widget>
+               </item>
+               <item>
+                <widget class="QLabel" name="label_7">
+                 <property name="font">
+                  <font>
+                   <pointsize>10</pointsize>
+                   <bold>true</bold>
+                  </font>
+                 </property>
+                 <property name="text">
+                  <string>Cut Sequnce Options</string>
                  </property>
                 </widget>
                </item>
@@ -277,7 +353,13 @@
                 </spacer>
                </item>
                <item>
-                <widget class="QPushButton" name="pushButton_2">
+                <widget class="QPushButton" name="run_pushButton">
+                 <property name="font">
+                  <font>
+                   <pointsize>12</pointsize>
+                   <bold>true</bold>
+                  </font>
+                 </property>
                  <property name="text">
                   <string>RUN</string>
                  </property>
@@ -323,17 +405,17 @@
   <widget class="QStatusBar" name="statusBar"/>
   <action name="action_">
    <property name="text">
-    <string>О программе</string>
+    <string>Рћ РїСЂРѕРіСЂР°РјРјРµ</string>
    </property>
   </action>
   <action name="action_2">
    <property name="text">
-    <string>Выход</string>
+    <string>Р’С‹С…РѕРґ</string>
    </property>
   </action>
   <action name="action_3">
    <property name="text">
-    <string>Файл настройки</string>
+    <string>Р¤Р°Р№Р» РЅР°СЃС‚СЂРѕР№РєРё</string>
    </property>
   </action>
  </widget>
