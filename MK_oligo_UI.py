@@ -1,4 +1,4 @@
-# -*- coding: utf-8 -*-
+#-*- coding: utf-8 -*-
 """
 Created on Sun Jul 10 10:34:43 2022
 
@@ -15,6 +15,52 @@ from Bio.Seq import Seq
 from PyQt5 import QtWidgets, uic #, QtCore, QtGui
 from PyQt5.QtWidgets import QFileDialog, QMessageBox, QCheckBox
 
+class Tm():
+    def __init__(self, oligos):
+        self.oligos = oligos.replace(" ", "")
+
+    def Tm_calculation(self):
+        Tms = []
+        Tm = 0
+        print(self.oligos)
+        for i in range (0, len(self.oligos)-1):
+            if i%2 == 0:
+                wA = self.oligos[i][len(self.oligos[i])-20:len(self.oligos[i])].count('A')
+                xT = self.oligos[i][len(self.oligos[i])-20:len(self.oligos[i])].count('T')
+                yG = self.oligos[i][len(self.oligos[i])-20:len(self.oligos[i])].count('G')
+                zC = self.oligos[i][len(self.oligos[i])-20:len(self.oligos[i])].count('C')
+            else:
+                self.oligos[i] = self.oligos[i][::-1]
+                wA = self.oligos[i][len(self.oligos[i])-20:len(self.oligos[i])].count('A')
+                xT = self.oligos[i][len(self.oligos[i])-20:len(self.oligos[i])].count('T')
+                yG = self.oligos[i][len(self.oligos[i])-20:len(self.oligos[i])].count('G')
+                zC = self.oligos[i][len(self.oligos[i])-20:len(self.oligos[i])].count('C')
+                self.oligos[i] = self.oligos[i][::-1]
+            Tm = 100.5+(41*(yG+zC)/(wA+xT+yG+zC))-(820/(wA+xT+yG+zC)) + 16.6*(-1.30103) #math.log10(0.05)
+            Tms.append(Tm)
+            print(Tms)
+            #print('Tm = ', "{:.1f}".format(Tm))
+        #print(Tms)  
+        #return(Tms)
+        
+    def Tm_calculation_NN(self):
+        #print('Температуры отжига комплементарных участков: ')
+        Tms = []
+        deltaH = 0
+        deltaS = 0
+        conc = 0.6*10**(-12)
+        NN_deltaH_values = {'AA': -9.1, 'TT': -9.1, 'AT': -8.6, 'TA': -6.0, 'CA': -5.8,
+                            'AC': -6.5, 'GT': -6.5, 'TG': -5.8, 'CT': -7.8, 'TC': -5.6,
+                            'GA': -5.6, 'AG': -7.8, 'CG': -11.9, 'GC': -11.1, 'GG': -11.0, 'CC': -11.0}
+        NN_deltaS_values = {'AA': -24.0, 'TT': -24.0, 'AT': -23.9, 'TA': -16.9, 'CA': -12.9,
+                            'AC': -17.3, 'GT': -17.3, 'TG': -12.9, 'CT': -20.8, 'TC': -13.5,
+                            'GA': -13.5, 'AG': -20.8, 'CG': -27.8, 'GC': -26.7, 'GG': -26.6, 'CC': -26.6}
+        for i in range (1, len(self.oligos)):
+            deltaH += NN_deltaH_values[self.oligos[i-1:i+1]]
+            deltaS += NN_deltaS_values[self.oligos[i-1:i+1]]
+        Tm = (-deltaH*1000-3400)/(-deltaS+1.9859*math.log(1/conc))+16.6*math.log10(0.05)-273
+        #return Tm
+
 class codonOpt():
     def __init__(self, seq):
         self.seq = seq
@@ -23,6 +69,7 @@ class codonOpt():
         if len(self.seq) < 3:
             return("Не заденна последовательность олигонуклеотида")
         else:
+            self.seq = self.seq.replace(" ", "")
             s = ' '.join([self.seq[i:i + 3] for i in range(0, len(self.seq), 3)])
             s=s.replace('CTC', ''.join(random.choices(['TTA', 'TTG', 'CTT', 'CTG'],  weights=[0.21, 0.16, 0.18, 0.45])))
             s=s.replace('CTA', ''.join(random.choices(['TTA', 'TTG', 'CTT', 'CTG'],  weights=[0.21, 0.16, 0.18, 0.45])))
@@ -39,7 +86,7 @@ class codonOpt():
 
 class seqAnalysis():
     def __init__(self, GCcontent):
-        self.GCcontent = GCcontent
+        self.GCcontent = GCcontent.replace(" ", "")
 
     def obrabotka(self):
         if len(self.GCcontent)==0:
@@ -50,7 +97,7 @@ class seqAnalysis():
 class Window(QtWidgets.QMainWindow):
     def __init__(self):
         QtWidgets.QWidget.__init__(self)
-        uic.loadUi("MainWindow.ui", self)
+        uic.loadUi("MainWindow1.ui", self)
         self.pushButton_6.clicked.connect(self.loadFile)
         self.pushButton.clicked.connect(self.codonOptimize)
         self.analiseseq_pushButton.clicked.connect(self.analiseSeq)
@@ -110,9 +157,14 @@ class Window(QtWidgets.QMainWindow):
         
     def codonOptimize(self):
         self.popupwin(codonOpt(self.plainTextEdit.toPlainText()).optimaze(),"Info")
+        optimazeSeq = codonOpt(self.plainTextEdit.toPlainText()).optimaze()
+        self.plainTextEdit.clear()
+        self.plainTextEdit.insertPlainText(optimazeSeq)
+        
         pass
 
     def analiseSeq(self):
+        #????? почему вылетает print(Tm(self.plainTextEdit.toPlainText()).Tm_calculation())   ?????
         self.popupwin(seqAnalysis(self.plainTextEdit.toPlainText()).obrabotka(),"Info")
         #seqAnalysis(self.plainTextEdit.toPlainText()).obrabotka()
         pass
