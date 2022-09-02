@@ -31,29 +31,63 @@ class baseCodes(QDialog):
         self.ui.exec()
 
 class oligoPool():
-    def __init__(self, oligopool):
-        self.oligopool = oligopool.replace(" ", "")
+    def __init__(self, genesequence):
+        self.genesequence = genesequence.replace(" ", "")
         self.oligos = []
+    # ДОДЕЛАТЬ TmDependecy
+    def TmDependencyCreate(self, max_length, Tm):
+        first_index= 0  # начало праймера
+        second_index = 0  # конец праймера
+        shutle_index = 0  
+        sequence_index = []  # массив пар значений [(начало праймера, конец праймера)]
+        Tm_real = 1
+        while first_index < len(self.genesequence):
+            first_index = shutle_index
+            second_index = shutle_index + max_length 
+            sequence_index.append((first_index,second_index))
+            overlap_oligos = 5
+            while Tm_real < Tm :
+                if overlap_oligos < 14:
+                    Tm_real = (self.genesequence[second_index-overlap_oligos:second_index].count("A")
+                    + self.genesequence[second_index-overlap_oligos:second_index].count("T"))*2 
+                    + (self.genesequence[second_index-overlap_oligos:second_index].count("G")
+                    + self.genesequence[second_index-overlap_oligos:second_index].count("C"))*4
+                else:
+                    Tm_real = 64.9 + 41*(self.genesequence[second_index-overlap_oligos:second_index].count("G")
+                    + self.genesequence[second_index-overlap_oligos:second_index].count("C")-16.4)/(
+                        self.genesequence[second_index-overlap_oligos:second_index].count("A")+
+                        self.genesequence[second_index-overlap_oligos:second_index].count("T")+
+                        self.genesequence[second_index-overlap_oligos:second_index].count("G")+
+                        self.genesequence[second_index-overlap_oligos:second_index].count("C"))
+                #print(overlap_oligos, Tm_real)
+                overlap_oligos+=1
+                print(overlap_oligos, Tm_real)
+            shutle_index = second_index - overlap_oligos
+        print('Tm', len(self.genesequence), sequence_index)
+        for i in range (len(sequence_index)-1):
+            if i%2 == 0:
+                self.oligos.append(self.genesequence[sequence_index[i][0]:sequence_index[i][1]])
+            else:
+                self.oligos.append(Seq((self.genesequence[sequence_index[i][0]:sequence_index[i][1]])[::-1]).complement())
+        return self.oligos
 
-    def create(self):
-        #oligos=[]
-        list1=[]
-        #i - длина первого олига, x+20 - длина всех остальных (20- комплементарный участок)
-        for i in range (40, 61):
-            for x in range (30, 41):
-                if (len(self.oligopool)-i)%x == 0 and ((len(self.oligopool)-i)/x)%2!=0:
-                    list1.append((x,i))
-        #print(list1)
-        x,i=list1[len(list1)-1]
-        self.oligos.append(self.oligopool[0:i])
-        k=i #положение в строке
-        while k != len(self.oligopool):
-            self.oligos.append(self.oligopool[k:k+x])
-            k+=x
-        for i in range (2, len(self.oligos), 2):
-            self.oligos[i]=self.oligos[i-1][len(self.oligos[i-1])-20:len(self.oligos[i-1])]+self.oligos[i]
-        for i in range (1, len(self.oligos), 2):
-            self.oligos[i]=str(Seq(self.oligos[i-1][len(self.oligos[i-1])-20:len(self.oligos[i-1])]).complement()+Seq(self.oligos[i]).complement())[::-1]
+    def createFixLenght(self, max_length, min_length):
+        first_index= 0  # начало праймера
+        second_index = 0  # конец праймера
+        shutle_index = 0  
+        sequence_index = []  # массив пар значений [(начало праймера, конец праймера)]
+        overlap_oligos = 18  # значение перекрытия для соседних праймеров
+        while first_index < len(self.genesequence):
+            first_index = shutle_index
+            second_index = shutle_index + max_length 
+            sequence_index.append((first_index,second_index))
+            shutle_index = second_index - (overlap_oligos + random.randint(0,4))
+        #print('random', len(self.genesequence), sequence_index)
+        for i in range (len(sequence_index)-1):
+            if i%2 == 0:
+                self.oligos.append(self.genesequence[sequence_index[i][0]:sequence_index[i][1]])
+            else:
+                self.oligos.append(Seq((self.genesequence[sequence_index[i][0]:sequence_index[i][1]])[::-1]).complement())
         return self.oligos
 
 
@@ -114,7 +148,7 @@ def hairpin(oligo, index, sequence, flag):
 
 class Tm():
     def __init__(self, oligos):
-        self.oligos = oligos.replace(" ", "")
+        self.oligos = oligos #.replace(" ", "")
 
     def Tm_calculation(self):   #ПОЧЕМУ-ТО НЕ РАБОТАЕТ!!! НАДО РАЗАБРАТЬСЯ!!!
         Tms = []
@@ -155,6 +189,7 @@ class Tm():
             deltaS += NN_deltaS_values[self.oligos[i-1:i+1]]
         Tm = (-deltaH*1000-3400)/(-deltaS+1.9859*math.log(1/conc))+16.6*math.log10(0.05)-273
         #print(Tm)
+        print(Tm)
         return Tm
 
 class codonOpt():
@@ -205,18 +240,7 @@ class codonOpt():
             s=s.replace('TAT', ''.join(random.choices(['AAA'], weights=[1.0])))
             return(s)
         else:
-            s = ' '.join([self.seq[i:i + 3] for i in range(0, len(self.seq), 3)])
-            s=s.replace('CTC', ''.join(random.choices(['TTA', 'TTG', 'CTT', 'CTG'], weights=[0.21, 0.16, 0.18, 0.45])))
-            s=s.replace('CTA', ''.join(random.choices(['TTA', 'TTG', 'CTT', 'CTG'], weights=[0.21, 0.16, 0.18, 0.45])))
-            s=s.replace('TCC', ''.join(random.choices(['TCT', 'TCA'], weights=[0.5, 0.5])))
-            s=s.replace('TCG', ''.join(random.choices(['TCT', 'TCA'], weights=[0.5, 0.5])))
-            s=s.replace('CCC', ''.join(random.choices(['CCT', 'CCA', 'CCG'], weights=[0.29, 0.27, 0.44])))
-            s=s.replace('CAC', 'CAT')
-            s=s.replace('CGA', ''.join(random.choices(['CGT', 'CGC'], weights=[0.53, 0.47])))
-            s=s.replace('CGG', ''.join(random.choices(['CGT', 'CGC'], weights=[0.53, 0.47])))
-            s=s.replace('AGA', ''.join(random.choices(['CGT', 'CGC'], weights=[0.53, 0.47])))
-            s=s.replace('AGG', ''.join(random.choices(['CGT', 'CGC'], weights=[0.53, 0.47])))
-            return(s)
+            pass
         
 
 class seqAnalysis():
@@ -234,11 +258,10 @@ class seqAnalysis():
             self.GCcontent.count('T')*304.2 - 61.96) + '\n' + 
             "GC состав: " + "{0:.2f}".format((self.GCcontent.count('G')+self.GCcontent.count('C')*100)/len(self.GCcontent)) + "%")
 
-'''class prettyOutput():
+class prettyOutput():
     def __init__(self, oligopool):
-        self.oligopool = oligopool.replace(" ", "")
-        self.oligos = []
-
+        self.oligopool = oligopool
+        
     def outputFile(oligos, Tms):
         with open('pretty_output.txt', 'w') as f:
             str1 = oligos[0]
@@ -260,7 +283,7 @@ class seqAnalysis():
                     f.write(str(oligos.index(oligo)+1) + ' f: ' + oligo + '\n') 
                 else:
                     f.write(str(oligos.index(oligo)+1) + ' b: ' + oligo + '\n') 
-        f.close()'''
+        f.close()
 
 class Window(QtWidgets.QMainWindow):
     def __init__(self, parent=None):
@@ -328,20 +351,21 @@ class Window(QtWidgets.QMainWindow):
             pass
 
     def analiseSeq(self):
-        #print(Tm(self.plainTextEdit.toPlainText()).Tm_calculation_NN())
         self.popupwin(seqAnalysis(self.plainTextEdit.toPlainText()).obrabotka(),"Analise Sequence")
         seqAnalysis(self.plainTextEdit.toPlainText()).obrabotka()
         pass
 
     def runScript(self):
         if len(self.plainTextEdit.toPlainText()) > 3:
-            oligos = oligoPool(self.plainTextEdit.toPlainText()).create()
+            oligos = oligoPool(self.plainTextEdit.toPlainText()).createFixLenght(int(self.spinBox.value()), int(self.spinBox_2.value()))
+            #oligos = oligoPool(self.plainTextEdit.toPlainText()).TmDependencyCreate(int(self.spinBox.value()), int(self.doubleSpinBox.value()))
+            print(oligos)
             for oligo in oligos:
                 if (oligos.index(oligo)+1)%2 !=0:
                     print(oligos.index(oligo)+1, 'f: ', oligo) 
                 else:
                     print(oligos.index(oligo)+1, 'b: ', oligo)
-            #Tms=Tm_calculation(oligos)
+            #Tm(oligos).Tm_calculation_NN()
             #pretty_output(oligos, Tms)
             print("Олигонуклеотиды с областями комплиментарности и температурами отжига представлены в файле pretty_output.txt")
         
